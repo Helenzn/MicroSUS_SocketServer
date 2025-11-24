@@ -49,7 +49,7 @@ public class Client {
     public void initClient() {
         try { //poderia otimizar usando um try-with-resources
             // 1. conexao com server (usa o método privado e atribui ao socket da instância)
-            conectaComServidor("localhost", 5555);
+            conectaComServidor("localhost", 80);
 
             // 2. streams de saida e entrada (baseados no socket da instância)
             PrintWriter output = new PrintWriter(this.socket.getOutputStream(), true);
@@ -62,7 +62,8 @@ public class Client {
             System.out.print("$>");
             String mensagem = teclado.readLine();
             //output é o envio ao servidor
-            output.println(mensagem);
+            output.write(mensagem+" \r\n");
+            output.write("\r\n");
             output.flush(); //força o esvaziamento do buffer
             
             // Recebimento da resposta do servidor
