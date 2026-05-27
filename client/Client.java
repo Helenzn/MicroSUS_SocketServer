@@ -49,7 +49,7 @@ public class Client {
     public void initClient() {
         try { //poderia otimizar usando um try-with-resources
             // 1. conexao com server (usa o método privado e atribui ao socket da instância)
-            conectaComServidor("localhost", 80);
+            conectaComServidor("localhost", 5555);
 
             // 2. streams de saida e entrada (baseados no socket da instância)
             PrintWriter output = new PrintWriter(this.socket.getOutputStream(), true);
