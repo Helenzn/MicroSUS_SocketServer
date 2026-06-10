@@ -12,7 +12,7 @@ import java.net.Socket;
 import java.nio.CharBuffer;
 import java.util.HashMap;
 import java.util.Map;
-
+import service.PacienteService;
 /**
  *
  * @author elder
@@ -23,12 +23,16 @@ public class ServerV2 {
     int porta;
     Map<String, String> arquivos;
 
-    public ServerV2() {
-        this.porta = 80;
-        arquivos = new HashMap<>();
-        arquivos.put("nome", "conteudo");
-    }
+    private PacienteService pacienteService;
 
+    public ServerV2() {
+    this.porta = 80;
+
+    arquivos = new HashMap<>();
+    arquivos.put("nome", "conteudo");
+
+    this.pacienteService = new PacienteService();
+}
     public void connectionLoop() throws IOException {
         try {
             // 2 - Esperar o um pedido de conexÃ£o;
@@ -119,14 +123,38 @@ public class ServerV2 {
             */
             
             System.out.println("Requisição completa recebida:\n" + parser.toString());
-            // Preparação da resposta HTTP para o cliente
-            //CRLF
 
-            String httpResponse = "HTTP/1.1 200 OK\r\n" + 
-                                  "Content-Type: text/html\r\n" +
-                                  "Content-Length: 26\r\n" +
-                                  "\r\n" +
-                                  "<h1>Erro no servidor!</h1>"; 
+            String httpResponse =
+                    "HTTP/1.1 404 Not Found\r\n" +
+                    "Content-Type: text/plain\r\n" +
+                    "Content-Length: 9\r\n" +
+                    "\r\n" +
+                    "Not Found";
+
+            if(parser.getMethod().equals("GET")
+            && parser.getPath().equals("/fila")){
+
+            String html =
+            "<html>" +
+            "<head><title>Fila de Atendimento</title></head>" +
+            "<body>" +
+            "<h1>Fila de Atendimento</h1>" +
+            "<p>Nenhum paciente na fila.</p>" +
+            "</body>" +
+            "</html>";
+
+            httpResponse =
+            "HTTP/1.1 200 OK\r\n" +
+            "Content-Type: text/html\r\n" +
+            "Content-Length: " + html.length() + "\r\n" +
+            "\r\n" +
+            html;
+
+            }
+            else if(parser.getMethod().equals("POST")
+                    && parser.getPath().equals("/pacientes")){
+
+            }
 
             System.out.println("Enviando resposta:\n" + httpResponse);
             //Dica: para calcular o Content-Length, um caracter equivale a 1 byte em texto simples
