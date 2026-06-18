@@ -12,6 +12,9 @@ import java.net.Socket;
 import java.nio.CharBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import com.google.gson.Gson;
+import model.Paciente;
+import model.PacienteRequest;
 import service.PacienteService;
 /**
  *
@@ -151,10 +154,37 @@ public class ServerV2 {
             html;
 
             }
-            else if(parser.getMethod().equals("POST")
-                    && parser.getPath().equals("/pacientes")){
+else if(parser.getMethod().equals("POST")
+        && parser.getPath().equals("/pacientes")) {
 
-            }
+    Gson gson = new Gson();
+
+    PacienteRequest request =
+            gson.fromJson(parser.getBody(), PacienteRequest.class);
+
+    Paciente paciente = pacienteService.cadastrar(
+            request.getNome(),
+            request.getSintoma(),
+            request.getPrioridade()
+    );
+
+    String json =
+            "{"
+            + "\"id\":" + paciente.getId() + ","
+            + "\"nome\":\"" + paciente.getNome() + "\","
+            + "\"sintoma\":\"" + paciente.getSintoma() + "\","
+            + "\"prioridade\":\"" + paciente.getPrioridade() + "\","
+            + "\"estado\":\"" + paciente.getEstado() + "\","
+            + "\"horaChegada\":\"" + paciente.getHoraChegada() + "\""
+            + "}";
+
+    httpResponse =
+            "HTTP/1.1 201 Created\r\n" +
+            "Content-Type: application/json\r\n" +
+            "Content-Length: " + json.length() + "\r\n" +
+            "\r\n" +
+            json;
+}
 
             System.out.println("Enviando resposta:\n" + httpResponse);
             //Dica: para calcular o Content-Length, um caracter equivale a 1 byte em texto simples
