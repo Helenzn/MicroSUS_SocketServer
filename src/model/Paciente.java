@@ -9,7 +9,7 @@ public class Paciente {
     private String sintoma;
     private String prioridade;
     private String estado;
-    private LocalDateTime horaChegada;
+    private String horaChegada;
 
     public Paciente() {
     }
@@ -54,14 +54,13 @@ public class Paciente {
         this.estado = estado;
     }
 
-    public LocalDateTime getHoraChegada() {
+        public String getHoraChegada() {
         return horaChegada;
     }
 
-    public void setHoraChegada(LocalDateTime horaChegada) {
+    public void setHoraChegada(String horaChegada) {
         this.horaChegada = horaChegada;
     }
-
     @Override
     public String toString() {
         return "Paciente{" +

@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 import model.Paciente;
 import model.PacienteRequest;
 import service.PacienteService;
+import java.util.List;
 /**
  *
  * @author elder
@@ -124,8 +125,12 @@ public class ServerV2 {
                 escrita da resposta
 
             */
-            
             System.out.println("Requisição completa recebida:\n" + parser.toString());
+
+          // System.out.println("Metodo recebido: " + parser.getMethod());
+          //  System.out.println("Caminho recebido: " + parser.getPath());
+System.out.println("METHOD = [" + parser.getMethod() + "]");
+System.out.println("PATH = [" + parser.getPath() + "]");
 
             String httpResponse =
                     "HTTP/1.1 404 Not Found\r\n" +
@@ -154,37 +159,148 @@ public class ServerV2 {
             html;
 
             }
-else if(parser.getMethod().equals("POST")
-        && parser.getPath().equals("/pacientes")) {
+            else if(parser.getMethod().equals("POST")
+                    && parser.getPath().equals("/pacientes")) {
 
-    Gson gson = new Gson();
+                Gson gson = new Gson();
 
-    PacienteRequest request =
-            gson.fromJson(parser.getBody(), PacienteRequest.class);
+                PacienteRequest request =
+                        gson.fromJson(parser.getBody(), PacienteRequest.class);
 
-    Paciente paciente = pacienteService.cadastrar(
-            request.getNome(),
-            request.getSintoma(),
-            request.getPrioridade()
-    );
+                Paciente paciente = pacienteService.cadastrar(
+                        request.getNome(),
+                        request.getSintoma(),
+                        request.getPrioridade()
+                );
 
-    String json =
-            "{"
-            + "\"id\":" + paciente.getId() + ","
-            + "\"nome\":\"" + paciente.getNome() + "\","
-            + "\"sintoma\":\"" + paciente.getSintoma() + "\","
-            + "\"prioridade\":\"" + paciente.getPrioridade() + "\","
-            + "\"estado\":\"" + paciente.getEstado() + "\","
-            + "\"horaChegada\":\"" + paciente.getHoraChegada() + "\""
-            + "}";
+                String json =
+                        "{"
+                        + "\"id\":" + paciente.getId() + ","
+                        + "\"nome\":\"" + paciente.getNome() + "\","
+                        + "\"sintoma\":\"" + paciente.getSintoma() + "\","
+                        + "\"prioridade\":\"" + paciente.getPrioridade() + "\","
+                        + "\"estado\":\"" + paciente.getEstado() + "\","
+                        + "\"horaChegada\":\"" + paciente.getHoraChegada() + "\""
+                        + "}";
 
-    httpResponse =
-            "HTTP/1.1 201 Created\r\n" +
-            "Content-Type: application/json\r\n" +
-            "Content-Length: " + json.length() + "\r\n" +
-            "\r\n" +
-            json;
-}
+                httpResponse =
+                        "HTTP/1.1 201 Created\r\n" +
+                        "Content-Type: application/json\r\n" +
+                        "Content-Length: " + json.length() + "\r\n" +
+                        "\r\n" +
+                        json;
+            }
+            else if(parser.getMethod().equals("GET")
+                    && parser.getPath().equals("/pacientes")) {
+
+                Gson gson = new Gson();
+
+                List<Paciente> pacientes = pacienteService.listarTodos();
+
+                String json = gson.toJson(pacientes);
+
+                httpResponse =
+                        "HTTP/1.1 200 OK\r\n" +
+                        "Content-Type: application/json\r\n" +
+                        "Content-Length: " + json.length() + "\r\n" +
+                        "\r\n" +
+                        json;
+            }
+            else if(parser.getMethod().equals("GET")
+                    && parser.getPath().startsWith("/pacientes/")) {
+
+                String idString = parser.getPath()
+                        .replace("/pacientes/", "");
+
+                int id = Integer.parseInt(idString);
+
+                Paciente paciente = pacienteService.buscarPorId(id);
+
+                Gson gson = new Gson();
+
+                String json = gson.toJson(paciente);
+
+                httpResponse =
+                        "HTTP/1.1 200 OK\r\n" +
+                        "Content-Type: application/json\r\n" +
+                        "Content-Length: " + json.length() + "\r\n" +
+                        "\r\n" +
+                        json;
+            }
+            else if(parser.getMethod().equals("PUT")
+                    && parser.getPath().startsWith("/pacientes/")) {
+
+
+                String idString = parser.getPath()
+                        .replace("/pacientes/", "");
+
+                int id = Integer.parseInt(idString);
+
+
+                Gson gson = new Gson();
+
+                PacienteRequest request =
+                        gson.fromJson(parser.getBody(), PacienteRequest.class);
+
+
+                Paciente paciente = pacienteService.atualizar(
+                        id,
+                        request.getNome(),
+                        request.getSintoma(),
+                        request.getPrioridade()
+                );
+
+
+                String json = gson.toJson(paciente);
+
+
+                httpResponse =
+                        "HTTP/1.1 200 OK\r\n" +
+                        "Content-Type: application/json\r\n" +
+                        "Content-Length: " + json.length() + "\r\n" +
+                        "\r\n" +
+                        json;
+            }
+           else if(parser.getMethod().equals("DELETE")
+                    && parser.getPath().startsWith("/pacientes/")) {
+
+
+                String idString = parser.getPath()
+                        .replace("/pacientes/", "");
+
+                int id = Integer.parseInt(idString);
+
+
+                boolean removido = pacienteService.remover(id);
+
+
+                if(!removido){
+
+                    String json =
+                            "{ \"erro\":\"Paciente não encontrado\" }";
+
+
+                    httpResponse =
+                            "HTTP/1.1 404 Not Found\r\n" +
+                            "Content-Type: application/json\r\n" +
+                            "Content-Length: " + json.length() + "\r\n" +
+                            "\r\n" +
+                            json;
+
+                } else {
+
+                    String json =
+                            "{ \"mensagem\":\"Paciente removido com sucesso\" }";
+
+
+                    httpResponse =
+                            "HTTP/1.1 200 OK\r\n" +
+                            "Content-Type: application/json\r\n" +
+                            "Content-Length: " + json.length() + "\r\n" +
+                            "\r\n" +
+                            json;
+                }
+            }
 
             System.out.println("Enviando resposta:\n" + httpResponse);
             //Dica: para calcular o Content-Length, um caracter equivale a 1 byte em texto simples
