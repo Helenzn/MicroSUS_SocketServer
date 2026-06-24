@@ -1,108 +1,214 @@
-# Socket Server Basic
+# 🏥 MicroSUS — Servidor HTTP de Fila de Pronto-Socorro
 
-Esqueleto de programação cliente-servidor com sockets TCP em Java, utilizado na disciplina de **Sistemas Distribuídos I** do IFSul — Campus Passo Fundo.
-
-## Objetivo
-
-Este repositório fornece a base de código para as atividades práticas sobre comunicação entre processos via sockets TCP. O esqueleto implementa um servidor e cliente Java mínimos que demonstram o ciclo completo de uma conexão TCP:
-
-1. **Criar** o `ServerSocket` e vincular a uma porta
-2. **Aguardar** conexões com `accept()` (bloqueante)
-3. **Criar** streams de entrada/saída (`BufferedReader` / `PrintWriter`)
-4. **Tratar** o protocolo de aplicação (leitura e resposta de mensagens)
-5. **Fechar** streams e conexão
-
-## Estrutura do Projeto
-
-```
-socket-server-basic/
-├── server/
-│   └── Server.java          # Servidor TCP iterativo
-├── client/
-│   └── Client.java          # Cliente TCP simples
-├── tests/
-│   └── requests.http         # Requisições HTTP para testes
-├── docs/                     # 📚 Material didático de apoio
-│   ├── parte_01_fundamentos_sockets.md
-│   ├── parte_02_echo_server.md
-│   ├── parte_03_protocolo_aplicacao.md
-│   ├── parte_04_web_server_http.md
-│   ├── apendice_a_python.md
-│   └── apendice_b_nodejs.md
-└── README.md
-```
-
-## Como Executar
-
-### Servidor
-
-```bash
-# Compilar
-javac server/Server.java
-
-# Executar (escuta na porta 5555)
-java server.Server
-```
-
-### Cliente
-
-```bash
-# Compilar
-javac client/Client.java
-
-# Executar (conecta em localhost:5555)
-java client.Client
-```
-
-### Testando com ferramentas de rede
-
-```bash
-# Telnet (interativo)
-telnet localhost 5555
-
-# Netcat (enviar mensagem)
-echo "Hello World" | nc localhost 5555
-
-# Curl (quando evoluído para HTTP)
-curl -v http://localhost:8080/
-```
-
-## 📚 Documentação de Apoio
-
-O diretório [`docs/`](docs/) contém o material didático completo que acompanha este código. A leitura é progressiva — cada parte constrói sobre a anterior:
-
-| # | Documento | Conteúdo |
-|---|-----------|----------|
-| 1 | [Fundamentos de Sockets](docs/parte_01_fundamentos_sockets.md) | O que é um socket, TCP vs UDP, modelo de camadas, fluxo de chamadas `socket()` → `accept()` → `read/write` → `close()`, comparativo Java/Python/Node.js |
-| 2 | [Echo Server (Prática)](docs/parte_02_echo_server.md) | Análise passo a passo do código deste repositório, diagrama de sequência, exercícios incrementais (maiúsculas, timestamp, comando SAIR) |
-| 3 | [Protocolos de Aplicação](docs/parte_03_protocolo_aplicacao.md) | Design de protocolos textuais sobre TCP, exemplo de calculadora remota (`CALC ADD 5 3`), introdução a multithreading com `ClientHandler implements Runnable` |
-| 4 | [Web Server HTTP](docs/parte_04_web_server_http.md) | Anatomia de requisições e respostas HTTP, conceito de rotas (método + path), os 4 incrementos para evoluir o esqueleto em um web server |
-
-### Apêndices (Outras Linguagens)
-
-| # | Documento | Conteúdo |
-|---|-----------|----------|
-| A | [Python](docs/apendice_a_python.md) | Implementações equivalentes usando o módulo `socket`, contraste de paradigma (bytes vs streams) |
-| B | [Node.js](docs/apendice_b_nodejs.md) | Implementações equivalentes usando o módulo `net`, modelo event-driven vs bloqueante |
-
-## Roteiro de Evolução
-
-O código deste repositório é o **ponto de partida**. A documentação guia a evolução progressiva:
-
-```
-Echo Server  →  Protocolo customizado  →  Multithreading  →  Web Server HTTP
-(este repo)     (Parte 3)                 (Parte 3)          (Parte 4 + Atividade)
-```
-
-## Referências
-
-- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/html/)
-- [Oracle Java Tutorials: All About Sockets](https://docs.oracle.com/javase/tutorial/networking/sockets/)
-- [RFC 7230: HTTP/1.1 Message Syntax](https://datatracker.ietf.org/doc/html/rfc7230)
-- [MDN: Overview of HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview)
+> Trabalho Final — Sistemas Distribuídos I | IFSul, Campus Passo Fundo  
+> Curso: Bacharelado em Ciência da Computação  
+> Professora: Elder Francisco Fontana Bernardi  
+> Aluna: Helen Zanco Neis
 
 ---
 
-**Disciplina:** Sistemas Distribuídos I (PF_CC.34)  
-**Professor:** Élder F. F. Bernardi  
-**Instituição:** IFSul — Campus Passo Fundo
+## 📋 Sobre o Projeto
+
+O **MicroSUS** é um servidor HTTP construído **do zero sobre sockets TCP em Java**, sem o uso de nenhum framework HTTP pronto (sem Spring, sem servlets). Ele simula um sistema de triagem e fila de pronto-socorro com prioridade, implementando um CRUD completo de pacientes e uma máquina de estados que garante a consistência do fluxo de atendimento.
+
+O objetivo central é demonstrar, na prática, os fundamentos de comunicação de sistemas distribuídos: parsing manual de requisições HTTP, roteamento, gerenciamento de estado compartilhado e respostas HTTP válidas — tudo sobre raw sockets.
+
+---
+
+## ✨ Funcionalidades
+
+- ✅ Servidor TCP que aceita conexões e parseia requisições HTTP/1.1 manualmente
+- ✅ Parse completo de request line, headers e body
+- ✅ Roteamento por método + path
+- ✅ **POST /pacientes** — Cadastro de paciente com geração automática de ID e timestamp
+- ✅ **GET /fila** — Visualização da fila ordenada por prioridade (renderiza HTML no navegador)
+- ✅ **GET /pacientes/{id}** — Consulta individual de paciente por ID
+- ✅ **GET /pacientes** — Listagem completa de pacientes
+- ✅ **PUT /pacientes/{id}** — Atualização de dados do paciente
+- ✅ **DELETE /pacientes/{id}** — Remoção de paciente
+- ✅ **POST /chamar** — Chama o próximo da fila (transição EM_FILA → EM_ATENDIMENTO)
+- ✅ **POST /pacientes/{id}/finalizar** — Finaliza atendimento (transição EM_ATENDIMENTO → ATENDIDO)
+- ✅ **GET /estatisticas** — Painel de estatísticas do sistema
+- ✅ Máquina de estados com validação de transições (retorna 409 Conflict para transições inválidas)
+- ✅ Fila de prioridade: vermelho > amarelo > verde, com FIFO dentro da mesma prioridade
+- ✅ Integração com Gson para serialização/desserialização de JSON
+
+---
+
+## 🗂️ Estrutura do Projeto
+
+```
+MicroSUS_SocketServer/
+├── src/
+│   ├── Main.java                  # Ponto de entrada
+│   ├── controller/
+│   │   └── PacienteController.java  # Roteamento e handlers das rotas
+│   ├── model/
+│   │   ├── Paciente.java            # Entidade Paciente
+│   │   └── PacienteRequest.java     # DTO de entrada (POST/PUT)
+│   ├── server/
+│   │   ├── ServerV2.java            # Loop principal do servidor TCP
+│   │   └── HttpParser.java          # Parser manual HTTP/1.1
+│   └── service/
+│       └── PacienteService.java     # Lógica de negócio e fila de prioridade
+├── client/
+│   └── Client.java                # Cliente TCP simples (testes)
+├── lib/
+│   └── gson-2.13.1.jar            # Biblioteca Gson
+├── bin/                           # Bytecode compilado (.class)
+├── tests/
+│   └── requests.http              # Arquivo de testes REST Client
+└── postman/
+    └── collections/               # Coleção Postman para testes
+```
+
+---
+
+## 🔄 Máquina de Estados
+
+Cada paciente percorre o seguinte ciclo de estados:
+
+```
+POST /pacientes          POST /chamar         POST /pacientes/{id}/finalizar
+     │                       │                           │
+  (novo) ──────────► EM_FILA ──────────► EM_ATENDIMENTO ──────────► ATENDIDO
+```
+
+**Transições inválidas retornam `409 Conflict`:**
+
+| Tentativa | Motivo |
+|---|---|
+| Finalizar paciente `EM_FILA` | Atendimento ainda não foi iniciado |
+| Finalizar paciente já `ATENDIDO` | Estado terminal — sem saída |
+| Chamar paciente `ATENDIDO` | Paciente já saiu do fluxo |
+| Chamar paciente `EM_ATENDIMENTO` | Paciente já está sendo atendido |
+
+---
+
+## 🏷️ Modelo de Dados — Paciente
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | int | Gerado automaticamente pelo servidor (sequencial) |
+| `nome` | String | Nome completo do paciente |
+| `sintoma` | String | Descrição breve do sintoma |
+| `prioridade` | String | `"vermelho"`, `"amarelo"` ou `"verde"` |
+| `estado` | String | `"EM_FILA"`, `"EM_ATENDIMENTO"` ou `"ATENDIDO"` |
+| `horaChegada` | String | Timestamp ISO 8601 do registro |
+| `prognostico` | String | Preenchido ao finalizar o atendimento |
+
+---
+
+## 🚀 Como Executar
+
+### Pré-requisitos
+
+- Java JDK 11+
+- Gson 2.13.1 (já incluído em `lib/`)
+
+### Compilar
+
+```bash
+javac -cp "lib/gson-2.13.1.jar" -d bin src/server/*.java src/model/*.java src/service/*.java src/controller/*.java
+```
+
+### Iniciar o servidor
+
+```bash
+java -cp "bin;lib/gson-2.13.1.jar" server.ServerV2
+```
+
+> O servidor escuta por padrão na porta **80** (localhost).
+
+### Limpar os .class compilados
+
+```powershell
+Get-ChildItem -Recurse -Filter *.class | Remove-Item
+```
+
+---
+
+## 🧪 Testando as Rotas
+
+### Via Navegador (GET)
+
+```
+http://localhost/fila
+http://localhost/pacientes
+http://localhost/estatisticas
+```
+
+### Via curl
+
+```bash
+# Cadastrar paciente
+curl -X POST http://localhost/pacientes \
+  -H "Content-Type: application/json" \
+  -d '{"nome":"Maria Silva","sintoma":"dor no peito","prioridade":"vermelho"}'
+
+# Visualizar fila
+curl http://localhost/fila
+
+# Chamar próximo paciente
+curl -X POST http://localhost/chamar
+
+# Finalizar atendimento (substitua {id} pelo ID do paciente)
+curl -X POST http://localhost/pacientes/1/finalizar \
+  -H "Content-Type: application/json" \
+  -d '{"prognostico":"Paciente estável, encaminhado para observação."}'
+
+# Estatísticas
+curl http://localhost/estatisticas
+```
+
+### Via PowerShell (Invoke-WebRequest)
+
+```powershell
+Invoke-WebRequest `
+  -Uri http://localhost/pacientes `
+  -Method POST `
+  -ContentType "application/json" `
+  -Body '{"nome":"Maria Silva","sintoma":"dor no peito","prioridade":"vermelho"}'
+```
+
+---
+
+## 📦 Rotas Disponíveis
+
+| Método | Rota | Descrição | Resposta |
+|---|---|---|---|
+| `POST` | `/pacientes` | Cadastra paciente (→ EM_FILA) | `201 Created` JSON |
+| `GET` | `/pacientes` | Lista todos os pacientes | `200 OK` JSON |
+| `GET` | `/pacientes/{id}` | Consulta paciente por ID | `200 OK` JSON |
+| `PUT` | `/pacientes/{id}` | Atualiza dados do paciente | `200 OK` JSON |
+| `DELETE` | `/pacientes/{id}` | Remove paciente | `200 OK` |
+| `GET` | `/fila` | Fila ordenada por prioridade | `200 OK` HTML |
+| `POST` | `/chamar` | Chama próximo da fila (→ EM_ATENDIMENTO) | `200 OK` JSON |
+| `POST` | `/pacientes/{id}/finalizar` | Finaliza atendimento (→ ATENDIDO) | `200 OK` JSON |
+| `GET` | `/estatisticas` | Painel de estatísticas | `200 OK` JSON |
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+- **Java** (sockets TCP brutos — `ServerSocket` / `Socket`)
+- **HTTP/1.1** (parsing manual — sem frameworks)
+- **Gson 2.13.1** (serialização/desserialização JSON)
+- **Postman** (testes de API)
+- **VS Code** com REST Client
+
+---
+
+## 📝 Checkpoints
+
+| Checkpoint | Data | Status | Entrega |
+|---|---|---|---|
+| CP1 | 03/06/2026 | ✅ Concluído | Servidor aceita conexão, parseia HTTP, GET /fila com HTML estático, POST /pacientes funcional |
+| CP2 | 10/06/2026 | ✅ Concluído | Todas as rotas funcionais, máquina de estados implementada e validada |
+| Apresentação | 21/06/2026 | ✅ Concluído | Demonstração individual com todas as rotas e máquina de estados |
+
+---
+
+## 📄 Licença
+
+Projeto acadêmico desenvolvido para a disciplina de Sistemas Distribuídos I — IFSul, Campus Passo Fundo, 2026/1.
