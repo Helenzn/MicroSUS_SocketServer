@@ -10,6 +10,7 @@ public class Paciente {
     private String prioridade;
     private String estado;
     private String horaChegada;
+    private String prognostico;
 
     public Paciente() {
     }
@@ -61,6 +62,16 @@ public class Paciente {
     public void setHoraChegada(String horaChegada) {
         this.horaChegada = horaChegada;
     }
+
+    public String getPrognostico() {
+        return prognostico;
+    }
+
+
+    public void setPrognostico(String prognostico) {
+        this.prognostico = prognostico;
+    }
+
     @Override
     public String toString() {
         return "Paciente{" +
