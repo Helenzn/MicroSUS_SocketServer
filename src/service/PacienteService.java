@@ -26,7 +26,7 @@ public class PacienteService {
         paciente.setSintoma(sintoma);
         paciente.setPrioridade(prioridade);
         paciente.setEstado("EM_FILA");
-        paciente.setHoraChegada("24/06/2026 00:15");
+        paciente.setHoraChegada("24/06/2026 08:15");
 
         pacientes.add(paciente);
 
